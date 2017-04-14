@@ -9,7 +9,7 @@ class LearningAgent(Agent):
         This is the object you will be modifying. """ 
 
     def __init__(self, env, learning=False, epsilon=1.0, alpha=0.5):
-        super(LearningAgent, self).__init__(env)     # Set the agent in the evironment 
+        super(LearningAgent, self).__init__(env)     # Set the agent in the environment
         self.planner = RoutePlanner(self.env, self)  # Create a route planner
         self.valid_actions = self.env.valid_actions  # The set of valid actions
 
@@ -39,6 +39,12 @@ class LearningAgent(Agent):
         # Update epsilon using a decay function of your choice
         # Update additional class parameters as needed
         # If 'testing' is True, set epsilon and alpha to 0
+        if testing:
+            self.epsilon = 0.0
+            self.alpha = 0.0
+        else:
+            self.epsilon -= 0.05  # decay self.epsilon - 0.05
+            self.alpha = 0.1
 
         return None
 
@@ -56,7 +62,8 @@ class LearningAgent(Agent):
         ## TO DO ##
         ###########
         # Set 'state' as a tuple of relevant data for the agent        
-        state = None
+        # state = (waypoint, inputs, deadline)
+        state = (waypoint, inputs['light'], inputs['oncoming'], inputs['left'])
 
         return state
 
@@ -84,6 +91,19 @@ class LearningAgent(Agent):
         # When learning, check if the 'state' is not in the Q-table
         # If it is not, create a new dictionary for that state
         #   Then, for each action available, set the initial Q-value to 0.0
+        for item in state:
+            if state[0] not in self.Q:
+                # state[0] - waypoint of 'left', 'right', 'forward'
+                # state[1] - inputs[light]
+                # state[2] - inputs[oncoming]
+                # state[3] - inputs[right]
+                # self.valid_actions = self.env.valid_actions  # The set of valid actions
+                # what are valid actions... create dictionary of each action, value 0.0
+                new_Q_actions = dict()
+                # loop for each action -> key: 0.0 -> add to Q_actions dict
+                for action in self.valid_actions:
+                    new_Q_actions[action] = 0.0
+                self.Q[item] = new_Q_actions
 
         return
 
@@ -103,6 +123,10 @@ class LearningAgent(Agent):
         # When not learning, choose a random action
         # When learning, choose a random action with 'epsilon' probability
         #   Otherwise, choose an action with the highest Q-value for the current state
+        if self.learning is False:
+            action = random.choice(self.valid_actions)
+        else:
+            action = self.get_maxQ(self.state) # TODO likely wrong
  
         return action
 
@@ -117,6 +141,10 @@ class LearningAgent(Agent):
         ###########
         # When learning, implement the value iteration update rule
         #   Use only the learning rate 'alpha' (do not use the discount factor 'gamma')
+        if self.learning is False:
+            # action should be used how
+            # reward + expected discounted reward
+            pass    # TODO
 
         return
 
@@ -145,7 +173,7 @@ def run():
     #   verbose     - set to True to display additional output from the simulation
     #   num_dummies - discrete number of dummy agents in the environment, default is 100
     #   grid_size   - discrete number of intersections (columns, rows), default is (8, 6)
-    env = Environment()
+    env = Environment(verbose=True)
     
     ##############
     # Create the driving agent
@@ -153,7 +181,7 @@ def run():
     #   learning   - set to True to force the driving agent to use Q-learning
     #    * epsilon - continuous value for the exploration factor, default is 1
     #    * alpha   - continuous value for the learning rate, default is 0.5
-    agent = env.create_agent(LearningAgent)
+    agent = env.create_agent(LearningAgent, learning=True)
     
     ##############
     # Follow the driving agent
