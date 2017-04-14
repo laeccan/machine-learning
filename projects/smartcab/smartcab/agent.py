@@ -63,7 +63,7 @@ class LearningAgent(Agent):
         ###########
         # Set 'state' as a tuple of relevant data for the agent        
         # state = (waypoint, inputs, deadline)
-        state = (waypoint, inputs['light'], inputs['oncoming'], inputs['left'])
+        state = (waypoint, inputs['light'], inputs['left'], inputs['oncoming'])
 
         return state
 
@@ -126,7 +126,7 @@ class LearningAgent(Agent):
         if self.learning is False:
             action = random.choice(self.valid_actions)
         else:
-            action = self.get_maxQ(self.state) # TODO likely wrong
+            action = self.get_maxQ(self.state) # TODO needs review
  
         return action
 
