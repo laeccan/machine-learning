@@ -76,10 +76,17 @@ class LearningAgent(Agent):
         ## TO DO ##
         ###########
         # Calculate the maximum Q-value of all actions for a given state
+        if state not in self.Q:
+            self.createQ(state)
 
-        maxQ = None
+        maxQkey = None
+        maxQvalue = 0.0
+        for key,value in self.Q[state].items():
+            if value > maxQvalue:
+                maxQkey = key
+                maxQvalue = value
 
-        return maxQ 
+        return maxQkey  # return value is an action, consumed by choose_action
 
 
     def createQ(self, state):
@@ -91,19 +98,11 @@ class LearningAgent(Agent):
         # When learning, check if the 'state' is not in the Q-table
         # If it is not, create a new dictionary for that state
         #   Then, for each action available, set the initial Q-value to 0.0
-        for item in state:
-            if state[0] not in self.Q:
-                # state[0] - waypoint of 'left', 'right', 'forward'
-                # state[1] - inputs[light]
-                # state[2] - inputs[oncoming]
-                # state[3] - inputs[right]
-                # self.valid_actions = self.env.valid_actions  # The set of valid actions
-                # what are valid actions... create dictionary of each action, value 0.0
-                new_Q_actions = dict()
-                # loop for each action -> key: 0.0 -> add to Q_actions dict
-                for action in self.valid_actions:
-                    new_Q_actions[action] = 0.0
-                self.Q[item] = new_Q_actions
+        if learning is True and state not in self.Q:
+            new_Q_actions = dict()
+            for action in self.valid_actions:
+                new_Q_actions[action] = 0.0
+            self.Q[state] = new_Q_actions
 
         return
 
@@ -126,8 +125,11 @@ class LearningAgent(Agent):
         if self.learning is False:
             action = random.choice(self.valid_actions)
         else:
-            action = self.get_maxQ(self.state) # TODO needs review
- 
+            if random.random() > self.epsilon:
+                action = random.choice(self.valid_actions)
+            else:
+                action = self.get_maxQ(self.state)
+
         return action
 
 
