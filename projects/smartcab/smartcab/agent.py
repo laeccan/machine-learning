@@ -98,7 +98,7 @@ class LearningAgent(Agent):
         # When learning, check if the 'state' is not in the Q-table
         # If it is not, create a new dictionary for that state
         #   Then, for each action available, set the initial Q-value to 0.0
-        if learning is True and state not in self.Q:
+        if self.learning is True and state not in self.Q:
             new_Q_actions = dict()
             for action in self.valid_actions:
                 new_Q_actions[action] = 0.0
@@ -143,10 +143,8 @@ class LearningAgent(Agent):
         ###########
         # When learning, implement the value iteration update rule
         #   Use only the learning rate 'alpha' (do not use the discount factor 'gamma')
-        if self.learning is False:
-            # action should be used how
-            # reward + expected discounted reward
-            pass    # TODO
+        if self.learning is True:
+            self.Q[state][action] += (self.alpha * (self.Q[state][action] / reward) - self.Q[state][action])
 
         return
 
