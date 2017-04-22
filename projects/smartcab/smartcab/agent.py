@@ -61,9 +61,8 @@ class LearningAgent(Agent):
         ########### 
         ## TO DO ##
         ###########
-        # Set 'state' as a tuple of relevant data for the agent        
-        # state = (waypoint, inputs, deadline)
-        state = (waypoint, inputs['light'], inputs['left'], inputs['oncoming'])
+        # Set 'state' as a tuple of relevant data for the agent
+        state = (waypoint, inputs['light'], inputs['left'] == 'forward', inputs['oncoming'])
 
         return state
 
@@ -79,14 +78,14 @@ class LearningAgent(Agent):
         if state not in self.Q:
             self.createQ(state)
 
-        maxQkey = None
+        #maxQkey = None
         maxQvalue = 0.0
         for key,value in self.Q[state].items():
             if value > maxQvalue:
-                maxQkey = key
+                #maxQkey = key
                 maxQvalue = value
 
-        return maxQkey  # return value is an action, consumed by choose_action
+        return maxQvalue  # return value is an action, consumed by choose_action
 
 
     def createQ(self, state):
@@ -116,7 +115,7 @@ class LearningAgent(Agent):
         self.next_waypoint = self.planner.next_waypoint()
         action = None
 
-        ########### 
+        ###########
         ## TO DO ##
         ###########
         # When not learning, choose a random action
@@ -125,10 +124,21 @@ class LearningAgent(Agent):
         if self.learning is False:
             action = random.choice(self.valid_actions)
         else:
-            if random.random() > self.epsilon:
+            print "agent.choose_action else {} < self.epsilon {}".format(random.random(), self.epsilon)
+            # TODO 2017-04-21_17:33 swapped ">" to "<" as always random choice
+            # TODO understand if
+            if random.random() < self.epsilon:
                 action = random.choice(self.valid_actions)
             else:
-                action = self.get_maxQ(self.state)
+                print "agent.choose_action else non-random"
+                maxQvalue = self.get_maxQ(self.state)
+                maxQactions = list()
+                for maxQaction in self.valid_actions:
+                    print "agent.choose_action self.Q[state][maxQaction] {} == maxQvalue {}".format(self.Q[state][maxQaction], maxQvalue)
+
+                    if self.Q[state][maxQaction] == maxQvalue:
+                        maxQactions.append(maxQaction)
+                action = random.choice(maxQactions)
 
         return action
 
@@ -144,7 +154,12 @@ class LearningAgent(Agent):
         # When learning, implement the value iteration update rule
         #   Use only the learning rate 'alpha' (do not use the discount factor 'gamma')
         if self.learning is True:
-            self.Q[state][action] += (self.alpha * (self.Q[state][action] / reward) - self.Q[state][action])
+            #self.Q[state][action] += (self.alpha * (self.Q[state][action] / reward) - self.Q[state][action])
+            #print "agent.learn self.Q[state][action] {} self.alpha {} reward {} ".format(self.Q[state][action], self.alpha, reward)
+            #print "agent.learn self.Q[state][action] {} {}".format(self.Q[state][action], type(self.Q[state][action]) == float)
+            #print "agent.learn reward {} {}".format(reward, type(reward) == float)
+            #print "agent.learn self.alpha {} {}".format(self.alpha, type(self.alpha) == float)
+            self.Q[state][action] += self.alpha * (reward - self.Q[state][action])
 
         return
 
